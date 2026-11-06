@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.AnytimeFitness" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <item name="colorPrimary">#E31C23</item>
-        <item name="colorPrimaryVariant">#B0161C</item>
+        <!-- Anytime Fitness brand purple -->
+        <item name="colorPrimary">#6E38D5</item>
+        <item name="colorPrimaryVariant">#5A2DB0</item>
         <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#000000</item>
-        <item name="colorSecondaryVariant">#333333</item>
-        <item name="colorOnSecondary">#FFFFFF</item>
+        <item name="colorSecondary">#D2A5FF</item>
+        <item name="colorSecondaryVariant">#221551</item>
+        <item name="colorOnSecondary">#000000</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <item name="android:windowBackground">#FAF8FF</item>
     </style>
 </resources>

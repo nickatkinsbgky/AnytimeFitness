@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="#FAF8FF">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -17,7 +18,7 @@
             android:text="@string/landing_title"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
+            android:textColor="#6E38D5"
             android:layout_marginBottom="24dp" />
 
         <com.google.android.material.button.MaterialButton
