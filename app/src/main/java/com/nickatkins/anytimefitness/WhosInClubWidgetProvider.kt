@@ -4,9 +4,9 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.widget.RemoteViews
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class WhosInClubWidgetProvider : AppWidgetProvider() {
 
@@ -21,24 +21,32 @@ class WhosInClubWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        private val scope = CoroutineScope(Dispatchers.IO)
+
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
             val views = RemoteViews(context.packageName, R.layout.whos_in_club_widget)
-
-            // TODO: Implement actual fetch + parse of Club OS dashboard
-            // 1. Load stored credentials from EncryptedSharedPreferences
-            // 2. Login to https://app.club-os.com if needed (handle cookies/session)
-            // 3. GET https://app.club-os.com/action/Dashboard/view
-            // 4. Parse HTML for the "Who's in the club" section (use Jsoup or regex carefully)
-            // 5. Format the list of names
-
-            val placeholder = "Who's in the Club\n(Implement login + scrape)"
-            views.setTextViewText(R.id.widget_text, placeholder)
-
+            views.setTextViewText(R.id.widget_text, "Loading...")
             appWidgetManager.updateAppWidget(appWidgetId, views)
+
+            scope.launch {
+                val (username, password) = CredentialStore.load(context)
+                val text = if (username.isNullOrBlank() || password.isNullOrBlank()) {
+                    "Set Club OS credentials\nin AFBGKY app"
+                } else {
+                    val result = ClubOsClient().fetchWhosInClub(username, password)
+                    result.getOrElse { e ->
+                        "Error: ${e.message?.take(60) ?: "unknown"}"
+                    }
+                }
+
+                val updated = RemoteViews(context.packageName, R.layout.whos_in_club_widget)
+                updated.setTextViewText(R.id.widget_text, "Who's in the Club\n$text")
+                appWidgetManager.updateAppWidget(appWidgetId, updated)
+            }
         }
     }
 }

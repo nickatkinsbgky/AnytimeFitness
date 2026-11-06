@@ -18,34 +18,50 @@
             android:textSize="28sp"
             android:textStyle="bold"
             android:textColor="?attr/colorPrimary"
-            android:layout_marginBottom="32dp" />
+            android:layout_marginBottom="24dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnWaiver"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_waiver"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSignup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_signup"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClubOS"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_clubos"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAbc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/btn_abc" />
+            android:text="@string/btn_abc"
+            android:layout_marginBottom="24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClubOsSettings"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Club OS Widget Credentials"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRefreshWidget"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Refresh Who's in Club Widget" />
 
     </LinearLayout>
 </ScrollView>
