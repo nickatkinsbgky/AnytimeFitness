@@ -27,7 +27,6 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* Phone frame on larger screens */
     body {
       display: flex;
       align-items: center;
@@ -57,7 +56,6 @@
       }
     }
 
-    /* Status bar */
     .status-bar {
       height: calc(44px + var(--safe-top));
       background: var(--af-purple-dark);
@@ -71,7 +69,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* App bar */
     .app-bar {
       background: var(--af-purple);
       color: white;
@@ -93,7 +90,6 @@
       font-weight: 500;
     }
 
-    /* Content */
     .content {
       flex: 1;
       overflow-y: auto;
@@ -108,6 +104,44 @@
       letter-spacing: 1px;
       color: var(--af-purple);
       margin: 8px 4px 12px;
+    }
+
+    /* Who's in the Club widget */
+    .widget {
+      background: var(--af-purple);
+      color: white;
+      border-radius: 20px;
+      padding: 18px 18px 16px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 20px rgba(110, 56, 213, 0.25);
+    }
+
+    .widget-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .widget-body {
+      font-size: 1.05rem;
+      font-weight: 600;
+      line-height: 1.45;
+      min-height: 60px;
+    }
+
+    .widget-note {
+      margin-top: 12px;
+      font-size: 0.75rem;
+      opacity: 0.85;
+      line-height: 1.3;
+    }
+
+    .widget a {
+      color: white;
+      text-decoration: underline;
     }
 
     .tile {
@@ -185,16 +219,20 @@
     </div>
 
     <div class="content">
-      <div class="section-label">Quick Links</div>
-
-      <a class="tile" href="https://f.cosdgw.com/dgw/Mjg5MjMxNjkz" target="_blank" rel="noopener">
-        <div class="tile-icon">✍️</div>
-        <div class="tile-text">
-          <div class="tile-title">Member Waiver</div>
-          <div class="tile-sub">Digital guest waiver</div>
+      <!-- Who's in the Club widget -->
+      <div class="widget">
+        <div class="widget-title">Who's in the Club</div>
+        <div class="widget-body" id="whosInClub">
+          Live list available in the Android app<br>
+          <span style="font-weight:500;font-size:0.95rem;">Open ClubOS to view check-ins</span>
         </div>
-        <div class="tile-chevron">›</div>
-      </a>
+        <div class="widget-note">
+          Full scraping + credentials are in the Android app.<br>
+          <a href="https://app.club-os.com/action/Dashboard/view#" target="_blank" rel="noopener">Open ClubOS Dashboard →</a>
+        </div>
+      </div>
+
+      <div class="section-label">Quick Links</div>
 
       <a class="tile" href="https://join.anytimefitness.com/4213/plans?session_id=425a7bd8-e282-431d-810e-86971ffb9b0f&_gl=1*xhx3gn*_gcl_au*MTk4NjkwNjYzNy4xNzkzOTg2NDY2*_ga*MTQxMjk0NjA1MC4xNzc2MjY5MTQ5*_ga_Y37200XWG9*czE3OTM5ODY0NjckbzEkZzEkdDE3OTM5ODY3NTckajQ2JGwwJGgw" target="_blank" rel="noopener">
         <div class="tile-icon">👤</div>
@@ -224,8 +262,7 @@
       </a>
 
       <div class="footer-note">
-        AFBGKY web launcher<br>
-        Who’s in the Club widget is in the Android app
+        AFBGKY web launcher • Bowling Green
       </div>
     </div>
   </div>
