@@ -98,7 +98,7 @@ class ClubOsClient {
         if (section != null) {
             section.select("li, .name, .member-name, td, span").forEach { el ->
                 val text = el.text().trim()
-                if (text.length in 3..40 && text.matches(Regex("[A-Za-z\s.'-]+"))) {
+                if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) {
                     candidates.add(text)
                 }
             }
@@ -108,7 +108,7 @@ class ClubOsClient {
         if (candidates.isEmpty()) {
             doc.select("div, li, span, td").forEach { el ->
                 val text = el.ownText().trim()
-                if (text.length in 4..30 && text.matches(Regex("[A-Z][a-z]+(?:\s[A-Z][a-z]+){0,2}"))) {
+                if (text.length in 4..30 && text.matches(Regex("[A-Z][a-z]+(?:\\s[A-Z][a-z]+){0,2}"))) {
                     candidates.add(text)
                 }
             }
