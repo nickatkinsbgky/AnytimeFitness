@@ -1,20 +1,24 @@
-# Anytime Fitness - Who's in the Club Widget
+# AFBGKY - My Anytime Fitness
 
-Starter Android home screen widget project.
+Android launcher app for quick access to Anytime Fitness Bowling Green (Club 2415) tools and pages.
 
-## Goal
-Display the live "Who's in the club" list from Club OS dashboard (https://app.club-os.com/action/Dashboard/view) on your phone's home screen.
+## Main Landing Page: My Anytime Fitness
+
+Buttons open these pages in the device browser:
+
+1. **Member Waiver** — https://f.cosdgw.com/dgw/Mjg5MjMxNjkz
+2. **Member Online Signup** — Anytime Fitness join plans page
+3. **ClubOS** — Gym management dashboard
+4. **ABC Financial** — Billing management
 
 ## Status
-This is a starter skeleton. You will need to:
-1. Open in Android Studio
-2. Implement the login + HTML parsing logic in `WhosInClubWidgetProvider.kt` (look for TODO comments)
-3. Store credentials securely (e.g. EncryptedSharedPreferences)
-4. Build and install on your device
 
-Club OS login is required. Scraping is used because no public real-time check-in API is available for regular accounts.
+Basic launcher implemented. The original "Who's in the Club" home screen widget skeleton is still present and can be expanded later.
 
 ## Setup
-- Min SDK 26
-- Target SDK 34
-- Uses OkHttp for network requests
+
+- Open in Android Studio
+- Min SDK 26 / Target SDK 34
+- Build and install on device
+
+App name: AFBGKY
