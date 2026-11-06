@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My Anytime Fitness | AFBGKY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>My Anytime Fitness</title>
   <style>
     :root {
       --af-purple: #6E38D5;
@@ -11,105 +11,222 @@
       --af-purple-darker: #221551;
       --af-purple-light: #D2A5FF;
       --af-bg: #FAF8FF;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     * {
       box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    body {
+    html, body {
       margin: 0;
+      height: 100%;
+      background: #e8e4f5;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background: var(--af-bg);
-      color: var(--af-purple-darker);
-      min-height: 100vh;
+    }
+
+    /* Phone frame on larger screens */
+    body {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 24px;
+      min-height: 100vh;
     }
 
-    .container {
+    .phone {
       width: 100%;
-      max-width: 420px;
+      max-width: 390px;
+      height: 100vh;
+      max-height: 844px;
+      background: var(--af-bg);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(34, 21, 81, 0.25);
+      border-radius: 0;
+    }
+
+    @media (min-width: 500px) {
+      .phone {
+        height: 844px;
+        border-radius: 36px;
+        border: 10px solid #1a1a1a;
+      }
+    }
+
+    /* Status bar */
+    .status-bar {
+      height: calc(44px + var(--safe-top));
+      background: var(--af-purple-dark);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 6px;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* App bar */
+    .app-bar {
+      background: var(--af-purple);
+      color: white;
+      padding: 16px 20px 20px;
       text-align: center;
     }
 
-    h1 {
-      color: var(--af-purple);
-      font-size: 2rem;
-      margin: 0 0 8px;
+    .app-bar h1 {
+      margin: 0;
+      font-size: 1.45rem;
       font-weight: 700;
+      letter-spacing: -0.3px;
     }
 
-    .subtitle {
-      color: #666;
-      margin-bottom: 32px;
-      font-size: 0.95rem;
-    }
-
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 16px 20px;
-      margin-bottom: 12px;
-      background: var(--af-purple);
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      transition: background 0.15s ease;
-    }
-
-    .btn:hover {
-      background: var(--af-purple-dark);
-    }
-
-    .btn-outline {
-      background: transparent;
-      color: var(--af-purple);
-      border: 2px solid var(--af-purple);
-    }
-
-    .btn-outline:hover {
-      background: rgba(110, 56, 213, 0.08);
-    }
-
-    .note {
-      margin-top: 32px;
+    .app-bar .club {
+      margin-top: 4px;
       font-size: 0.85rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    /* Content */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px calc(20px + var(--safe-bottom));
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--af-purple);
+      margin: 8px 4px 12px;
+    }
+
+    .tile {
+      display: flex;
+      align-items: center;
+      background: white;
+      border-radius: 16px;
+      padding: 18px 16px;
+      margin-bottom: 12px;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: 0 2px 8px rgba(110, 56, 213, 0.08);
+      border: 1px solid rgba(110, 56, 213, 0.06);
+      transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+
+    .tile:active {
+      transform: scale(0.98);
+      box-shadow: 0 1px 4px rgba(110, 56, 213, 0.12);
+    }
+
+    .tile-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--af-purple), var(--af-purple-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 14px;
+      flex-shrink: 0;
+      color: white;
+      font-size: 22px;
+    }
+
+    .tile-text {
+      flex: 1;
+      text-align: left;
+    }
+
+    .tile-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--af-purple-darker);
+    }
+
+    .tile-sub {
+      font-size: 0.8rem;
       color: #777;
+      margin-top: 2px;
+    }
+
+    .tile-chevron {
+      color: var(--af-purple);
+      font-size: 1.4rem;
+      font-weight: 300;
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 20px;
       line-height: 1.4;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>My Anytime Fitness</h1>
-    <div class="subtitle">AFBGKY • Club 2415</div>
+  <div class="phone">
+    <div class="status-bar">AFBGKY</div>
 
-    <a class="btn" href="https://f.cosdgw.com/dgw/Mjg5MjMxNjkz" target="_blank" rel="noopener">
-      Member Waiver
-    </a>
+    <div class="app-bar">
+      <h1>My Anytime Fitness</h1>
+      <div class="club">Bowling Green • Club 2415</div>
+    </div>
 
-    <a class="btn" href="https://join.anytimefitness.com/4213/plans?session_id=425a7bd8-e282-431d-810e-86971ffb9b0f&_gl=1*xhx3gn*_gcl_au*MTk4NjkwNjYzNy4xNzkzOTg2NDY2*_ga*MTQxMjk0NjA1MC4xNzc2MjY5MTQ5*_ga_Y37200XWG9*czE3OTM5ODY0NjckbzEkZzEkdDE3OTM5ODY3NTckajQ2JGwwJGgw" target="_blank" rel="noopener">
-      Member Online Signup
-    </a>
+    <div class="content">
+      <div class="section-label">Quick Links</div>
 
-    <a class="btn" href="https://app.club-os.com/action/Dashboard/view#" target="_blank" rel="noopener">
-      ClubOS Dashboard
-    </a>
+      <a class="tile" href="https://f.cosdgw.com/dgw/Mjg5MjMxNjkz" target="_blank" rel="noopener">
+        <div class="tile-icon">✍️</div>
+        <div class="tile-text">
+          <div class="tile-title">Member Waiver</div>
+          <div class="tile-sub">Digital guest waiver</div>
+        </div>
+        <div class="tile-chevron">›</div>
+      </a>
 
-    <a class="btn" href="https://client.abcfinancial.com/(S(art2cnqfw0mvlx45ulmtzybg))/default.aspx?_gl=1*15bvxrc*_gcl_au*OTExNDcwMTYwLjE3OTMwMzkyMzI." target="_blank" rel="noopener">
-      ABC Financial
-    </a>
+      <a class="tile" href="https://join.anytimefitness.com/4213/plans?session_id=425a7bd8-e282-431d-810e-86971ffb9b0f&_gl=1*xhx3gn*_gcl_au*MTk4NjkwNjYzNy4xNzkzOTg2NDY2*_ga*MTQxMjk0NjA1MC4xNzc2MjY5MTQ5*_ga_Y37200XWG9*czE3OTM5ODY0NjckbzEkZzEkdDE3OTM5ODY3NTckajQ2JGwwJGgw" target="_blank" rel="noopener">
+        <div class="tile-icon">👤</div>
+        <div class="tile-text">
+          <div class="tile-title">Member Signup</div>
+          <div class="tile-sub">Online join plans</div>
+        </div>
+        <div class="tile-chevron">›</div>
+      </a>
 
-    <div class="note">
-      Web launcher version of the AFBGKY app.<br>
-      The “Who’s in the Club” widget is available in the Android app only.
+      <a class="tile" href="https://app.club-os.com/action/Dashboard/view#" target="_blank" rel="noopener">
+        <div class="tile-icon">📊</div>
+        <div class="tile-text">
+          <div class="tile-title">ClubOS</div>
+          <div class="tile-sub">Gym management</div>
+        </div>
+        <div class="tile-chevron">›</div>
+      </a>
+
+      <a class="tile" href="https://client.abcfinancial.com/(S(art2cnqfw0mvlx45ulmtzybg))/default.aspx?_gl=1*15bvxrc*_gcl_au*OTExNDcwMTYwLjE3OTMwMzkyMzI." target="_blank" rel="noopener">
+        <div class="tile-icon">💳</div>
+        <div class="tile-text">
+          <div class="tile-title">ABC Financial</div>
+          <div class="tile-sub">Billing & payments</div>
+        </div>
+        <div class="tile-chevron">›</div>
+      </a>
+
+      <div class="footer-note">
+        AFBGKY web launcher<br>
+        Who’s in the Club widget is in the Android app
+      </div>
     </div>
   </div>
 </body>
