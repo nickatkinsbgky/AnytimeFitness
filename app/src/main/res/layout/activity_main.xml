@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fillViewport="true"
-    android:background="#FAF8FF">
+    android:background="@color/af_background">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
             android:text="@string/landing_title"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:textColor="#6E38D5"
+            android:textColor="@color/af_purple"
             android:layout_marginBottom="24dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -26,6 +26,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_waiver"
+            android:backgroundTint="@color/af_purple"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -33,6 +34,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_signup"
+            android:backgroundTint="@color/af_purple"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -40,6 +42,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_clubos"
+            android:backgroundTint="@color/af_purple"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -47,6 +50,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/btn_abc"
+            android:backgroundTint="@color/af_purple"
             android:layout_marginBottom="24dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -55,6 +59,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Club OS Widget Credentials"
+            android:strokeColor="@color/af_purple"
+            android:textColor="@color/af_purple"
             android:layout_marginBottom="12dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -62,7 +68,9 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Refresh Who's in Club Widget" />
+            android:text="Refresh Who's in Club Widget"
+            android:strokeColor="@color/af_purple"
+            android:textColor="@color/af_purple" />
 
     </LinearLayout>
 </ScrollView>

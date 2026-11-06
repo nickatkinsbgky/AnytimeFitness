@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.AnytimeFitness" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-        <!-- Anytime Fitness brand purple -->
-        <item name="colorPrimary">#6E38D5</item>
-        <item name="colorPrimaryVariant">#5A2DB0</item>
-        <item name="colorOnPrimary">#FFFFFF</item>
-        <item name="colorSecondary">#D2A5FF</item>
-        <item name="colorSecondaryVariant">#221551</item>
-        <item name="colorOnSecondary">#000000</item>
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <item name="android:windowBackground">#FAF8FF</item>
+        <!-- Anytime Fitness brand colors -->
+        <item name="colorPrimary">@color/af_purple</item>
+        <item name="colorPrimaryVariant">@color/af_purple_dark</item>
+        <item name="colorOnPrimary">@color/af_white</item>
+        <item name="colorSecondary">@color/af_purple_light</item>
+        <item name="colorSecondaryVariant">@color/af_purple_darker</item>
+        <item name="colorOnSecondary">@color/af_black</item>
+
+        <item name="android:statusBarColor">@color/af_purple_dark</item>
+        <item name="android:windowBackground">@color/af_background</item>
+        <item name="android:navigationBarColor">@color/af_purple_darker</item>
+
+        <!-- Button defaults -->
+        <item name="materialButtonStyle">@style/Widget.MaterialComponents.Button</item>
+        <item name="android:textColorPrimary">@color/af_purple_darker</item>
     </style>
 </resources>

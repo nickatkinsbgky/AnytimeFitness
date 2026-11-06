@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="af_purple">#6E38D5</color>
+    <color name="af_purple_dark">#5A2DB0</color>
+    <color name="af_purple_darker">#221551</color>
+    <color name="af_purple_light">#D2A5FF</color>
+    <color name="af_background">#FAF8FF</color>
+    <color name="af_black">#000000</color>
+    <color name="af_white">#FFFFFF</color>
+</resources>
