@@ -2,6 +2,8 @@
 
 Android launcher app for quick access to Anytime Fitness Bowling Green (Club 2415) tools and pages, plus a home-screen widget for the Club OS “Who’s in the Club” list.
 
+A simple web version is also available in the `web/` folder.
+
 ## Main Landing Page: My Anytime Fitness
 
 Buttons open these pages in the device browser:
@@ -10,6 +12,10 @@ Buttons open these pages in the device browser:
 2. **Member Online Signup** — Anytime Fitness join plans page
 3. **ClubOS** — Gym management dashboard
 4. **ABC Financial** — Billing management
+
+## Web Version
+
+Open `web/index.html` in Chrome (or any browser) for the same launcher with Anytime Fitness branding. No build required.
 
 ## Who’s in the Club Widget
 
