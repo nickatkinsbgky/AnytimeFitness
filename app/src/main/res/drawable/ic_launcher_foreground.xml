@@ -5,27 +5,37 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- AF monogram -->
+    <!-- A letter -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M28,32 L40,32 L48,68 L56,32 L68,32 L54,76 L42,76 Z" />
+        android:pathData="M26,78 L38,30 L50,30 L62,78 L52,78 L49,66 L39,66 L36,78 Z
+                         M41,58 L47,58 L44,46 Z" />
+
+    <!-- F letter -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M62,32 L78,32 L78,40 L70,40 L70,48 L76,48 L76,56 L70,56 L70,76 L62,76 Z" />
+        android:pathData="M66,30 L84,30 L84,40 L74,40 L74,50 L82,50 L82,60 L74,60 L74,78 L66,78 Z" />
 
     <!-- Dumbbell -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M30,82 h6 v8 h-6 z" />
+        android:pathData="M28,84 h8 v6 h-8 z" />
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M38,84 h32 v4 h-32 z" />
+        android:pathData="M38,86 h32 v2 h-32 z" />
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M72,82 h6 v8 h-6 z" />
+        android:pathData="M72,84 h8 v6 h-8 z" />
 
-    <!-- Subtle glass highlight on AF (simple overlay) -->
+    <!-- Glass highlights (semi-transparent overlays) -->
+    <path
+        android:fillColor="#60FFFFFF"
+        android:pathData="M30,34 L36,34 L40,50 L34,50 Z" />
     <path
         android:fillColor="#40FFFFFF"
-        android:pathData="M32,34 L38,34 L46,60 L40,60 Z" />
+        android:pathData="M68,32 L80,32 L80,38 L74,38 L74,44 L78,44 L78,50 L70,50 L70,36 L68,36 Z" />
+    <path
+        android:fillColor="#50FFFFFF"
+        android:pathData="M30,85 h6 v2 h-6 z
+                         M74,85 h6 v2 h-6 z" />
 </vector>
