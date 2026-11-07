@@ -37,7 +37,7 @@ class WhosInClubWidgetProvider : AppWidgetProvider() {
                 val text = if (username.isNullOrBlank() || password.isNullOrBlank()) {
                     "Set Club OS credentials\nin AFBGKY app"
                 } else {
-                    val result = ClubOsClient().fetchWhosInClub(username, password)
+                    val result = ClubOsClient().fetchWhosInClubText(username, password)
                     result.getOrElse { e ->
                         "Error: ${e.message?.take(60) ?: "unknown"}"
                     }
