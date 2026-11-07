@@ -38,4 +38,5 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
     implementation("org.jsoup:jsoup:1.17.2")
+    implementation("io.coil-kt:coil:2.6.0")
 }
