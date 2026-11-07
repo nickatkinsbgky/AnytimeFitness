@@ -35,22 +35,21 @@ class ClubOsClient {
         })
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .followRedirects(true)
-        .followSslRedirects(true)
+        .followRedirects(false)   // handle redirects manually so we can capture cookies
+        .followSslRedirects(false)
         .build()
 
     private val userAgent = "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
 
     fun fetchWhosInClub(username: String, password: String): Result<List<ClubMember>> {
         return try {
-            // Step 1: GET login page to get session + form tokens
+            // Step 1: GET login page
             val loginPageReq = Request.Builder()
                 .url("https://app.club-os.com/action/Login/view")
                 .get()
                 .header("User-Agent", userAgent)
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .header("Accept-Language", "en-US,en;q=0.9")
-                .header("Upgrade-Insecure-Requests", "1")
                 .build()
 
             val loginPageResponse = client.newCall(loginPageReq).execute()
@@ -77,47 +76,49 @@ class ClubOsClient {
                     else -> formBuilder.add(name, value)
                 }
             }
-
-            // Force the submit marker
             formBuilder.add("login", "Submit")
 
-            // Step 2: POST login
+            // Step 2: POST login (no auto-redirect)
             val loginReq = Request.Builder()
                 .url(actionUrl)
                 .post(formBuilder.build())
                 .header("User-Agent", userAgent)
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                .header("Accept-Language", "en-US,en;q=0.9")
                 .header("Referer", "https://app.club-os.com/action/Login/view")
                 .header("Origin", "https://app.club-os.com")
-                .header("Content-Type", "application/x-www-form-urlencoded")
                 .build()
 
             val loginResponse = client.newCall(loginReq).execute()
             val loginBody = loginResponse.body?.string() ?: ""
-            val finalUrl = loginResponse.request.url.toString()
 
-            val stillOnLogin = loginBody.contains("id=\"loginForm\"") ||
-                    loginBody.contains("name=\"password\"") && loginBody.contains("placeholder=\"Password\"")
+            // Follow one redirect if present
+            var dashUrl = "https://app.club-os.com/action/Dashboard/view"
+            if (loginResponse.isRedirect) {
+                val location = loginResponse.header("Location")
+                if (!location.isNullOrBlank()) {
+                    dashUrl = if (location.startsWith("http")) location else "https://app.club-os.com$location"
+                }
+            }
 
-            if (stillOnLogin && !finalUrl.contains("Dashboard", ignoreCase = true)) {
+            // If the POST body itself still looks like login, fail early
+            if (loginBody.contains("id=\"loginForm\"") && !loginResponse.isRedirect) {
                 return Result.failure(Exception("Login failed — still on login page. Check credentials or try again."))
             }
 
-            // Step 3: GET dashboard
+            // Step 3: GET dashboard (cookies should now be stored)
             val dashReq = Request.Builder()
-                .url("https://app.club-os.com/action/Dashboard/view")
+                .url(dashUrl)
                 .get()
                 .header("User-Agent", userAgent)
                 .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                .header("Referer", finalUrl)
+                .header("Referer", "https://app.club-os.com/action/Login/view")
                 .build()
 
             val dashResponse = client.newCall(dashReq).execute()
             val html = dashResponse.body?.string() ?: ""
 
             if (html.contains("id=\"loginForm\"") || html.contains("placeholder=\"Password\"")) {
-                return Result.failure(Exception("Could not reach dashboard after login"))
+                return Result.failure(Exception("Could not reach dashboard after login (session not established)"))
             }
 
             val members = parseWhosInClub(html)
