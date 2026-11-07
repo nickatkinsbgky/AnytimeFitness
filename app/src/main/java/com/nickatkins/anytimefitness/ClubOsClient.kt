@@ -22,26 +22,34 @@ class ClubOsClient {
     private val client = OkHttpClient.Builder()
         .cookieJar(object : CookieJar {
             override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                cookieStore[url.host] = cookies
+                val existing = cookieStore[url.host]?.toMutableList() ?: mutableListOf()
+                cookies.forEach { newCookie ->
+                    existing.removeAll { it.name == newCookie.name }
+                    existing.add(newCookie)
+                }
+                cookieStore[url.host] = existing
             }
 
             override fun loadForRequest(url: HttpUrl): List<Cookie> {
                 return cookieStore[url.host] ?: emptyList()
             }
         })
-        .connectTimeout(25, TimeUnit.SECONDS)
-        .readTimeout(25, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
         .followRedirects(true)
         .followSslRedirects(true)
         .build()
 
+    private val userAgent = "Mozilla/5.0 (Linux; Android 14; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+
     fun fetchWhosInClub(username: String, password: String): Result<List<ClubMember>> {
         return try {
-            // Step 1: GET login page and parse the form
+            // Step 1: GET login page
             val loginPageReq = Request.Builder()
                 .url("https://app.club-os.com/action/Login/view")
                 .get()
-                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36")
+                .header("User-Agent", userAgent)
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                 .build()
 
             val loginPageResponse = client.newCall(loginPageReq).execute()
@@ -52,79 +60,81 @@ class ClubOsClient {
             }
 
             val doc = Jsoup.parse(loginHtml)
-            val form = doc.select("form").firstOrNull()
-                ?: return Result.failure(Exception("No login form found on page"))
+            val form = doc.select("form#loginForm").firstOrNull()
+                ?: doc.select("form").firstOrNull()
+                ?: return Result.failure(Exception("No login form found"))
 
-            val action = form.attr("action").ifBlank { "https://app.club-os.com/action/Login/login" }
+            val action = form.attr("action").ifBlank { "/action/Login" }
             val actionUrl = if (action.startsWith("http")) action else "https://app.club-os.com$action"
 
-            // Collect all form fields, override username/password ones
+            // Build form body with all fields, overriding credentials
             val formBuilder = FormBody.Builder()
-            form.select("input").forEach { input ->
+            form.select("input[name]").forEach { input ->
                 val name = input.attr("name")
-                if (name.isBlank()) return@forEach
                 val value = input.attr("value")
                 when {
-                    name.contains("user", ignoreCase = true) || name == "username" || name == "j_username" ->
-                        formBuilder.add(name, username)
-                    name.contains("pass", ignoreCase = true) || name == "password" || name == "j_password" ->
-                        formBuilder.add(name, password)
+                    name.equals("username", ignoreCase = true) -> formBuilder.add(name, username)
+                    name.equals("password", ignoreCase = true) -> formBuilder.add(name, password)
                     else -> formBuilder.add(name, value)
                 }
             }
 
-            // Fallback if no matching fields were found
-            if (form.select("input[name*=user], input[name*=User], input[name=username], input[name=j_username]").isEmpty()) {
+            // Ensure credentials are present even if selectors missed them
+            if (form.select("input[name=username]").isEmpty()) {
                 formBuilder.add("username", username)
+            }
+            if (form.select("input[name=password]").isEmpty()) {
                 formBuilder.add("password", password)
             }
 
-            // Step 2: POST the login
+            // Step 2: POST login
             val loginReq = Request.Builder()
                 .url(actionUrl)
                 .post(formBuilder.build())
-                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36")
+                .header("User-Agent", userAgent)
                 .header("Referer", "https://app.club-os.com/action/Login/view")
                 .header("Origin", "https://app.club-os.com")
+                .header("Content-Type", "application/x-www-form-urlencoded")
                 .build()
 
             val loginResponse = client.newCall(loginReq).execute()
             val loginBody = loginResponse.body?.string() ?: ""
+            val finalUrl = loginResponse.request.url.toString()
 
-            // Better success detection: if we still see a login form or error text, fail
-            val stillLogin = loginBody.contains("password", ignoreCase = true) &&
-                    (loginBody.contains("Login", ignoreCase = true) || loginBody.contains("Sign in", ignoreCase = true))
-            val hasError = loginBody.contains("invalid", ignoreCase = true) ||
-                    loginBody.contains("incorrect", ignoreCase = true) ||
-                    loginBody.contains("failed", ignoreCase = true)
+            // Success if we landed on dashboard or no longer see the login form
+            val onDashboard = finalUrl.contains("Dashboard", ignoreCase = true) ||
+                    loginBody.contains("Who's in the club", ignoreCase = true) ||
+                    loginBody.contains("Currently in", ignoreCase = true)
 
-            if (loginResponse.code >= 400 || stillLogin || hasError) {
-                return Result.failure(Exception("Login failed — check username/password (or Club OS form changed)"))
+            val stillOnLogin = loginBody.contains("id=\"loginForm\"") ||
+                    loginBody.contains("name=\"password\"") && loginBody.contains("placeholder=\"Password\"")
+
+            if (!onDashboard && stillOnLogin) {
+                return Result.failure(Exception("Login failed — still on login page. Check credentials or try again."))
             }
 
-            // Step 3: GET dashboard
+            // Step 3: Explicitly fetch dashboard (in case of intermediate redirect)
             val dashReq = Request.Builder()
                 .url("https://app.club-os.com/action/Dashboard/view")
                 .get()
-                .header("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 Chrome/120.0.0.0 Mobile Safari/537.36")
+                .header("User-Agent", userAgent)
+                .header("Referer", "https://app.club-os.com/action/Login/view")
                 .build()
 
             val dashResponse = client.newCall(dashReq).execute()
             val html = dashResponse.body?.string() ?: ""
 
-            if (html.contains("Login", ignoreCase = true) && html.contains("password", ignoreCase = true)) {
-                return Result.failure(Exception("Still on login page after login attempt"))
+            if (html.contains("id=\"loginForm\"") || (html.contains("password") && html.contains("Login") && !html.contains("Dashboard"))) {
+                return Result.failure(Exception("Could not reach dashboard after login"))
             }
 
-            // Step 4: Parse "Who's in the club" section
             val members = parseWhosInClub(html)
             Result.success(members)
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("Login/network error: ${e.message ?: "unknown"}"))
         }
     }
 
-    // Keep a string version for the widget
     fun fetchWhosInClubText(username: String, password: String): Result<String> {
         return fetchWhosInClub(username, password).map { members ->
             if (members.isEmpty()) {
@@ -168,11 +178,7 @@ class ClubOsClient {
         val text = el.ownText().trim().ifEmpty { el.select(".name, .member-name, span, a").firstOrNull()?.text()?.trim() }
             ?: el.text().trim()
 
-        return if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) {
-            text
-        } else {
-            null
-        }
+        return if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) text else null
     }
 
     private fun extractPhotoUrl(el: Element): String? {
