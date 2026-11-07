@@ -7,7 +7,13 @@ import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
+import org.jsoup.nodes.Element
 import java.util.concurrent.TimeUnit
+
+data class ClubMember(
+    val name: String,
+    val photoUrl: String? = null
+)
 
 class ClubOsClient {
 
@@ -29,7 +35,7 @@ class ClubOsClient {
         .followSslRedirects(true)
         .build()
 
-    fun fetchWhosInClub(username: String, password: String): Result<String> {
+    fun fetchWhosInClub(username: String, password: String): Result<List<ClubMember>> {
         return try {
             // Step 1: GET login page to establish session
             val loginPageReq = Request.Builder()
@@ -38,11 +44,11 @@ class ClubOsClient {
                 .build()
             client.newCall(loginPageReq).execute().use { /* just to set cookies */ }
 
-            // Step 2: POST credentials (common field names; adjust if Club OS uses different ones)
+            // Step 2: POST credentials
             val form = FormBody.Builder()
                 .add("username", username)
                 .add("password", password)
-                .add("j_username", username) // fallback common names
+                .add("j_username", username)
                 .add("j_password", password)
                 .build()
 
@@ -74,46 +80,76 @@ class ClubOsClient {
             }
 
             // Step 4: Parse "Who's in the club" section
-            val names = parseWhosInClub(html)
-            if (names.isEmpty()) {
-                Result.success("No one currently checked in\n(or section not found)")
-            } else {
-                Result.success(names.joinToString("\n"))
-            }
+            val members = parseWhosInClub(html)
+            Result.success(members)
         } catch (e: Exception) {
             Result.failure(e)
         }
     }
 
-    private fun parseWhosInClub(html: String): List<String> {
-        val doc = Jsoup.parse(html)
+    // Keep a string version for the widget
+    fun fetchWhosInClubText(username: String, password: String): Result<String> {
+        return fetchWhosInClub(username, password).map { members ->
+            if (members.isEmpty()) {
+                "No one currently checked in\n(or section not found)"
+            } else {
+                members.joinToString("\n") { it.name }
+            }
+        }
+    }
 
-        // Try several possible selectors / text patterns common in Club OS dashboards
-        val candidates = mutableListOf<String>()
+    private fun parseWhosInClub(html: String): List<ClubMember> {
+        val doc = Jsoup.parse(html)
+        val members = mutableListOf<ClubMember>()
 
         // Look for a section titled something like "Who's in the club" or "Currently in Club"
         val section = doc.select("*:contains(Who's in the club), *:contains(Who’s in the club), *:contains(Currently in), *:contains(In the Club)")
             .firstOrNull()?.parent()
 
-        if (section != null) {
-            section.select("li, .name, .member-name, td, span").forEach { el ->
+        val searchRoot = section ?: doc.body()
+
+        // Try to find member-like elements that may contain an image and a name
+        searchRoot.select("div, li, tr, .member, .checkin, .attendee").forEach { el ->
+            val name = extractName(el)
+            if (name != null) {
+                val photo = extractPhotoUrl(el)
+                members.add(ClubMember(name, photo))
+            }
+        }
+
+        // Fallback: name-like text if nothing structured was found
+        if (members.isEmpty()) {
+            searchRoot.select("li, .name, .member-name, td, span").forEach { el ->
                 val text = el.text().trim()
                 if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) {
-                    candidates.add(text)
+                    members.add(ClubMember(text))
                 }
             }
         }
 
-        // Fallback: grab any short name-like strings near the dashboard
-        if (candidates.isEmpty()) {
-            doc.select("div, li, span, td").forEach { el ->
-                val text = el.ownText().trim()
-                if (text.length in 4..30 && text.matches(Regex("[A-Z][a-z]+(?:\\s[A-Z][a-z]+){0,2}"))) {
-                    candidates.add(text)
-                }
-            }
-        }
+        return members.distinctBy { it.name }.take(20)
+    }
 
-        return candidates.distinct().take(15)
+    private fun extractName(el: Element): String? {
+        val text = el.ownText().trim().ifEmpty { el.select(".name, .member-name, span, a").firstOrNull()?.text()?.trim() }
+            ?: el.text().trim()
+
+        return if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) {
+            text
+        } else {
+            null
+        }
+    }
+
+    private fun extractPhotoUrl(el: Element): String? {
+        val img = el.select("img").firstOrNull()
+        val src = img?.attr("src")?.takeIf { it.isNotBlank() }
+            ?: img?.attr("data-src")?.takeIf { it.isNotBlank() }
+
+        return src?.let { url ->
+            if (url.startsWith("http")) url
+            else if (url.startsWith("/")) "https://app.club-os.com$url"
+            else null
+        }
     }
 }
