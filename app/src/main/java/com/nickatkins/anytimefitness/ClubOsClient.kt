@@ -17,17 +17,16 @@ data class ClubMember(
 
 class ClubOsClient {
 
-    private val cookieStore = mutableMapOf<String, List<Cookie>>()
+    private val cookieStore = mutableMapOf<String, MutableList<Cookie>>()
 
     private val client = OkHttpClient.Builder()
         .cookieJar(object : CookieJar {
             override fun saveFromResponse(url: HttpUrl, cookies: List<Cookie>) {
-                val existing = cookieStore[url.host]?.toMutableList() ?: mutableListOf()
+                val list = cookieStore.getOrPut(url.host) { mutableListOf() }
                 cookies.forEach { newCookie ->
-                    existing.removeAll { it.name == newCookie.name }
-                    existing.add(newCookie)
+                    list.removeAll { it.name == newCookie.name }
+                    list.add(newCookie)
                 }
-                cookieStore[url.host] = existing
             }
 
             override fun loadForRequest(url: HttpUrl): List<Cookie> {
@@ -44,12 +43,14 @@ class ClubOsClient {
 
     fun fetchWhosInClub(username: String, password: String): Result<List<ClubMember>> {
         return try {
-            // Step 1: GET login page
+            // Step 1: GET login page to get session + form tokens
             val loginPageReq = Request.Builder()
                 .url("https://app.club-os.com/action/Login/view")
                 .get()
                 .header("User-Agent", userAgent)
-                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                .header("Accept-Language", "en-US,en;q=0.9")
+                .header("Upgrade-Insecure-Requests", "1")
                 .build()
 
             val loginPageResponse = client.newCall(loginPageReq).execute()
@@ -61,13 +62,11 @@ class ClubOsClient {
 
             val doc = Jsoup.parse(loginHtml)
             val form = doc.select("form#loginForm").firstOrNull()
-                ?: doc.select("form").firstOrNull()
                 ?: return Result.failure(Exception("No login form found"))
 
             val action = form.attr("action").ifBlank { "/action/Login" }
             val actionUrl = if (action.startsWith("http")) action else "https://app.club-os.com$action"
 
-            // Build form body with all fields, overriding credentials
             val formBuilder = FormBody.Builder()
             form.select("input[name]").forEach { input ->
                 val name = input.attr("name")
@@ -79,19 +78,16 @@ class ClubOsClient {
                 }
             }
 
-            // Ensure credentials are present even if selectors missed them
-            if (form.select("input[name=username]").isEmpty()) {
-                formBuilder.add("username", username)
-            }
-            if (form.select("input[name=password]").isEmpty()) {
-                formBuilder.add("password", password)
-            }
+            // Force the submit marker
+            formBuilder.add("login", "Submit")
 
             // Step 2: POST login
             val loginReq = Request.Builder()
                 .url(actionUrl)
                 .post(formBuilder.build())
                 .header("User-Agent", userAgent)
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header("Accept-Language", "en-US,en;q=0.9")
                 .header("Referer", "https://app.club-os.com/action/Login/view")
                 .header("Origin", "https://app.club-os.com")
                 .header("Content-Type", "application/x-www-form-urlencoded")
@@ -101,30 +97,26 @@ class ClubOsClient {
             val loginBody = loginResponse.body?.string() ?: ""
             val finalUrl = loginResponse.request.url.toString()
 
-            // Success if we landed on dashboard or no longer see the login form
-            val onDashboard = finalUrl.contains("Dashboard", ignoreCase = true) ||
-                    loginBody.contains("Who's in the club", ignoreCase = true) ||
-                    loginBody.contains("Currently in", ignoreCase = true)
-
             val stillOnLogin = loginBody.contains("id=\"loginForm\"") ||
                     loginBody.contains("name=\"password\"") && loginBody.contains("placeholder=\"Password\"")
 
-            if (!onDashboard && stillOnLogin) {
+            if (stillOnLogin && !finalUrl.contains("Dashboard", ignoreCase = true)) {
                 return Result.failure(Exception("Login failed — still on login page. Check credentials or try again."))
             }
 
-            // Step 3: Explicitly fetch dashboard (in case of intermediate redirect)
+            // Step 3: GET dashboard
             val dashReq = Request.Builder()
                 .url("https://app.club-os.com/action/Dashboard/view")
                 .get()
                 .header("User-Agent", userAgent)
-                .header("Referer", "https://app.club-os.com/action/Login/view")
+                .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                .header("Referer", finalUrl)
                 .build()
 
             val dashResponse = client.newCall(dashReq).execute()
             val html = dashResponse.body?.string() ?: ""
 
-            if (html.contains("id=\"loginForm\"") || (html.contains("password") && html.contains("Login") && !html.contains("Dashboard"))) {
+            if (html.contains("id=\"loginForm\"") || html.contains("placeholder=\"Password\"")) {
                 return Result.failure(Exception("Could not reach dashboard after login"))
             }
 
