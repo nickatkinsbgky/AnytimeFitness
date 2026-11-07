@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- AF monogram -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M28,32 L40,32 L48,68 L56,32 L68,32 L54,76 L42,76 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M62,32 L78,32 L78,40 L70,40 L70,48 L76,48 L76,56 L70,56 L70,76 L62,76 Z" />
+
+    <!-- Dumbbell -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,82 h6 v8 h-6 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,84 h32 v4 h-32 z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M72,82 h6 v8 h-6 z" />
+
+    <!-- Subtle glass highlight on AF (simple overlay) -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M32,34 L38,34 L46,60 L40,60 Z" />
+</vector>
