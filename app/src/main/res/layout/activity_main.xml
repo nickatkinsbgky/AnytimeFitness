@@ -62,7 +62,47 @@
             android:layout_height="wrap_content"
             android:text="Refresh Who's in Club Widget"
             android:strokeColor="@color/af_purple"
-            android:textColor="@color/af_purple" />
+            android:textColor="@color/af_purple"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Who's in the Club section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Who's in the Club"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/af_purple"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRefreshWhosIn"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Refresh"
+            android:strokeColor="@color/af_purple"
+            android:textColor="@color/af_purple"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:id="@+id/whosInStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tap Refresh to load who's currently in the club"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/af_purple_darker" />
+
+        <LinearLayout
+            android:id="@+id/membersContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@android:color/white"
+            android:padding="4dp"
+            android:elevation="2dp" />
 
     </LinearLayout>
 </ScrollView>
