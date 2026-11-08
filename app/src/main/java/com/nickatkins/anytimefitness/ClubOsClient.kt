@@ -140,50 +140,79 @@ class ClubOsClient {
         val doc = Jsoup.parse(html)
         val members = mutableListOf<ClubMember>()
 
-        // Safer search — avoid :contains() with apostrophes
-        var searchRoot: Element = doc.body()
-        val headings = doc.select("h1, h2, h3, h4, h5, h6, .title, .header, div, span")
-        for (el in headings) {
-            val text = el.text().lowercase()
-            if (text.contains("who") && text.contains("club") ||
-                text.contains("currently in") ||
-                text.contains("in the club")
+        // Look for a more specific container around the "Who's in the club" heading
+        var searchRoot: Element? = null
+        val candidates = doc.select("h1, h2, h3, h4, h5, h6, .widget-title, .panel-title, .box-title, div, span")
+        for (el in candidates) {
+            val text = el.ownText().trim().lowercase()
+            if ((text.contains("who") && text.contains("club")) ||
+                text.contains("currently in the club") ||
+                text.contains("in the club now")
             ) {
-                searchRoot = el.parent() ?: el
+                // Prefer the closest reasonable parent that isn't the whole page
+                var parent = el.parent()
+                var hops = 0
+                while (parent != null && hops < 4) {
+                    if (parent.select("li, .member, .checkin, .attendee, .person").isNotEmpty()) {
+                        searchRoot = parent
+                        break
+                    }
+                    parent = parent.parent()
+                    hops++
+                }
+                if (searchRoot == null) searchRoot = el.parent()
                 break
             }
         }
 
-        searchRoot.select("div, li, tr, .member, .checkin, .attendee").forEach { el ->
+        val root = searchRoot ?: doc.body()
+
+        // Prefer list-like or member-like elements
+        root.select("li, .member, .checkin, .attendee, .person, .user, tr").forEach { el ->
             val name = extractName(el)
-            if (name != null) {
+            if (name != null && !isNavigationText(name)) {
                 val photo = extractPhotoUrl(el)
                 members.add(ClubMember(name, photo))
             }
         }
 
+        // Fallback: tighter text nodes only if nothing better was found
         if (members.isEmpty()) {
-            searchRoot.select("li, .name, .member-name, td, span").forEach { el ->
-                val text = el.text().trim()
-                if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) {
+            root.select(".name, .member-name, span, a").forEach { el ->
+                val text = el.ownText().trim()
+                if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+")) && !isNavigationText(text)) {
                     members.add(ClubMember(text))
                 }
             }
         }
 
-        return members.distinctBy { it.name }.take(20)
+        return members.distinctBy { it.name }.take(15)
+    }
+
+    private fun isNavigationText(text: String): Boolean {
+        val lower = text.lowercase()
+        val navWords = listOf(
+            "dashboard", "calendar", "reports", "settings", "logout", "login",
+            "members", "prospects", "follow", "tasks", "messages", "home",
+            "who", "club", "view", "add", "search", "menu", "profile"
+        )
+        return navWords.any { lower.contains(it) } || text.length < 4
     }
 
     private fun extractName(el: Element): String? {
-        val text = el.ownText().trim().ifEmpty { el.select(".name, .member-name, span, a").firstOrNull()?.text()?.trim() }
-            ?: el.text().trim()
+        val candidates = listOf(
+            el.select(".name, .member-name, .person-name").firstOrNull()?.ownText(),
+            el.ownText(),
+            el.select("span, a").firstOrNull()?.ownText()
+        )
+        val text = candidates.firstOrNull { !it.isNullOrBlank() }?.trim() ?: return null
 
         return if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) text else null
     }
 
     private fun extractPhotoUrl(el: Element): String? {
         val img = el.select("img").firstOrNull()
-        val src = img?.attr("src")?.takeIf { it.isNotBlank() }
+        val src = img?.attr("src")?.takeIf { it.isNotBlank() && !it.contains("logo", ignoreCase = true) && !it.contains("icon", ignoreCase = true) }
             ?: img?.attr("data-src")?.takeIf { it.isNotBlank() }
 
         return src?.let { url ->
