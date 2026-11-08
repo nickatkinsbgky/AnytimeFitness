@@ -140,20 +140,20 @@ class ClubOsClient {
         val doc = Jsoup.parse(html)
         val members = mutableListOf<ClubMember>()
 
-        // Look for a more specific container around the "Who's in the club" heading
+        // Find the most specific container that looks like a "who's in" widget
         var searchRoot: Element? = null
-        val candidates = doc.select("h1, h2, h3, h4, h5, h6, .widget-title, .panel-title, .box-title, div, span")
+        val candidates = doc.select("h1, h2, h3, h4, h5, h6, .widget-title, .panel-title, .box-title, .title")
         for (el in candidates) {
             val text = el.ownText().trim().lowercase()
             if ((text.contains("who") && text.contains("club")) ||
-                text.contains("currently in the club") ||
-                text.contains("in the club now")
+                text.contains("currently in") ||
+                text.contains("in the club")
             ) {
-                // Prefer the closest reasonable parent that isn't the whole page
                 var parent = el.parent()
                 var hops = 0
-                while (parent != null && hops < 4) {
-                    if (parent.select("li, .member, .checkin, .attendee, .person").isNotEmpty()) {
+                while (parent != null && hops < 5) {
+                    val hasPeople = parent.select("img, .avatar, .photo, li, .member").isNotEmpty()
+                    if (hasPeople && parent.text().length < 2000) {
                         searchRoot = parent
                         break
                     }
@@ -165,55 +165,57 @@ class ClubOsClient {
             }
         }
 
-        val root = searchRoot ?: doc.body()
+        val root = searchRoot ?: return emptyList() // Don't fall back to the whole page
 
-        // Prefer list-like or member-like elements
-        root.select("li, .member, .checkin, .attendee, .person, .user, tr").forEach { el ->
+        // Strongly prefer items that have both a short name and a photo
+        root.select("li, .member, .checkin, .attendee, .person, .user, div, tr").forEach { el ->
             val name = extractName(el)
-            if (name != null && !isNavigationText(name)) {
-                val photo = extractPhotoUrl(el)
+            val photo = extractPhotoUrl(el)
+            if (name != null && !isTileOrNav(name) && (photo != null || el.select("img").isNotEmpty())) {
                 members.add(ClubMember(name, photo))
             }
         }
 
-        // Fallback: tighter text nodes only if nothing better was found
+        // If still empty, take short name-like texts that are not tiles
         if (members.isEmpty()) {
-            root.select(".name, .member-name, span, a").forEach { el ->
+            root.select("span, a, .name, .member-name").forEach { el ->
                 val text = el.ownText().trim()
-                if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+")) && !isNavigationText(text)) {
+                if (text.length in 4..30 && text.matches(Regex("[A-Za-z\\s.'-]+")) && !isTileOrNav(text)) {
                     members.add(ClubMember(text))
                 }
             }
         }
 
-        return members.distinctBy { it.name }.take(15)
+        return members.distinctBy { it.name }.take(12)
     }
 
-    private fun isNavigationText(text: String): Boolean {
+    private fun isTileOrNav(text: String): Boolean {
         val lower = text.lowercase()
-        val navWords = listOf(
+        val bad = listOf(
             "dashboard", "calendar", "reports", "settings", "logout", "login",
             "members", "prospects", "follow", "tasks", "messages", "home",
-            "who", "club", "view", "add", "search", "menu", "profile"
+            "who", "club", "view", "add", "search", "menu", "profile",
+            "check in", "check-in", "new", "lead", "event", "class",
+            "schedule", "billing", "staff", "admin", "help", "support"
         )
-        return navWords.any { lower.contains(it) } || text.length < 4
+        return bad.any { lower.contains(it) } || text.length < 4 || text.contains("\n")
     }
 
     private fun extractName(el: Element): String? {
         val candidates = listOf(
-            el.select(".name, .member-name, .person-name").firstOrNull()?.ownText(),
+            el.select(".name, .member-name, .person-name, .full-name").firstOrNull()?.ownText(),
             el.ownText(),
-            el.select("span, a").firstOrNull()?.ownText()
+            el.select("span, a").firstOrNull { it.ownText().isNotBlank() }?.ownText()
         )
         val text = candidates.firstOrNull { !it.isNullOrBlank() }?.trim() ?: return null
-
-        return if (text.length in 3..40 && text.matches(Regex("[A-Za-z\\s.'-]+"))) text else null
+        return if (text.length in 4..30 && text.matches(Regex("[A-Za-z\\s.'-]+"))) text else null
     }
 
     private fun extractPhotoUrl(el: Element): String? {
         val img = el.select("img").firstOrNull()
-        val src = img?.attr("src")?.takeIf { it.isNotBlank() && !it.contains("logo", ignoreCase = true) && !it.contains("icon", ignoreCase = true) }
-            ?: img?.attr("data-src")?.takeIf { it.isNotBlank() }
+        val src = img?.attr("src")?.takeIf {
+            it.isNotBlank() && !it.contains("logo", true) && !it.contains("icon", true) && !it.contains("placeholder", true)
+        } ?: img?.attr("data-src")?.takeIf { it.isNotBlank() }
 
         return src?.let { url ->
             if (url.startsWith("http")) url
