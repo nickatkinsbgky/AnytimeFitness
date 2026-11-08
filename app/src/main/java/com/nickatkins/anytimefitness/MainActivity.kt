@@ -53,65 +53,14 @@ class MainActivity : AppCompatActivity() {
             refreshWidget()
         }
 
+        // Open Club OS directly — the "Who's in the Club" list is loaded by JavaScript
         findViewById<MaterialButton>(R.id.btnRefreshWhosIn).setOnClickListener {
-            loadWhosInClub()
-        }
-    }
-
-    private fun loadWhosInClub() {
-        val (username, password) = CredentialStore.load(this)
-        if (username.isNullOrBlank() || password.isNullOrBlank()) {
-            statusText.text = "Set Club OS credentials first"
+            openUrl("https://app.club-os.com/action/Dashboard/view#")
+            statusText.text = "Opened Club OS. The live list is only available inside the website."
             membersContainer.removeAllViews()
-            return
         }
 
-        statusText.text = "Loading…"
-        membersContainer.removeAllViews()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val result = ClubOsClient().fetchWhosInClub(username, password)
-            withContext(Dispatchers.Main) {
-                result.fold(
-                    onSuccess = { members ->
-                        if (members.isEmpty()) {
-                            statusText.text = "No one currently checked in (or section not found)"
-                        } else {
-                            statusText.text = "${members.size} currently in the club"
-                            members.forEach { member ->
-                                addMemberView(member)
-                            }
-                        }
-                    },
-                    onFailure = { e ->
-                        statusText.text = "Error: ${e.message ?: "unknown"}"
-                    }
-                )
-            }
-        }
-    }
-
-    private fun addMemberView(member: ClubMember) {
-        val inflater = LayoutInflater.from(this)
-        val view = inflater.inflate(R.layout.item_member, membersContainer, false)
-
-        val photo = view.findViewById<ImageView>(R.id.memberPhoto)
-        val name = view.findViewById<TextView>(R.id.memberName)
-
-        name.text = member.name
-
-        if (!member.photoUrl.isNullOrBlank()) {
-            photo.load(member.photoUrl) {
-                crossfade(true)
-                transformations(CircleCropTransformation())
-                placeholder(android.R.drawable.ic_menu_gallery)
-                error(android.R.drawable.ic_menu_gallery)
-            }
-        } else {
-            photo.setImageResource(android.R.drawable.ic_menu_gallery)
-        }
-
-        membersContainer.addView(view)
+        statusText.text = "Tap the button to open Club OS and see who's in the club"
     }
 
     private fun openUrl(url: String) {
