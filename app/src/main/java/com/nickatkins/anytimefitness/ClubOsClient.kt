@@ -35,7 +35,7 @@ class ClubOsClient {
         })
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
-        .followRedirects(false)   // handle redirects manually so we can capture cookies
+        .followRedirects(false)
         .followSslRedirects(false)
         .build()
 
@@ -91,7 +91,6 @@ class ClubOsClient {
             val loginResponse = client.newCall(loginReq).execute()
             val loginBody = loginResponse.body?.string() ?: ""
 
-            // Follow one redirect if present
             var dashUrl = "https://app.club-os.com/action/Dashboard/view"
             if (loginResponse.isRedirect) {
                 val location = loginResponse.header("Location")
@@ -100,12 +99,11 @@ class ClubOsClient {
                 }
             }
 
-            // If the POST body itself still looks like login, fail early
             if (loginBody.contains("id=\"loginForm\"") && !loginResponse.isRedirect) {
                 return Result.failure(Exception("Login failed — still on login page. Check credentials or try again."))
             }
 
-            // Step 3: GET dashboard (cookies should now be stored)
+            // Step 3: GET dashboard
             val dashReq = Request.Builder()
                 .url(dashUrl)
                 .get()
@@ -142,10 +140,19 @@ class ClubOsClient {
         val doc = Jsoup.parse(html)
         val members = mutableListOf<ClubMember>()
 
-        val section = doc.select("*:contains(Who's in the club), *:contains(Who’s in the club), *:contains(Currently in), *:contains(In the Club)")
-            .firstOrNull()?.parent()
-
-        val searchRoot = section ?: doc.body()
+        // Safer search — avoid :contains() with apostrophes
+        var searchRoot: Element = doc.body()
+        val headings = doc.select("h1, h2, h3, h4, h5, h6, .title, .header, div, span")
+        for (el in headings) {
+            val text = el.text().lowercase()
+            if (text.contains("who") && text.contains("club") ||
+                text.contains("currently in") ||
+                text.contains("in the club")
+            ) {
+                searchRoot = el.parent() ?: el
+                break
+            }
+        }
 
         searchRoot.select("div, li, tr, .member, .checkin, .attendee").forEach { el ->
             val name = extractName(el)
