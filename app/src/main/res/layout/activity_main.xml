@@ -51,6 +51,14 @@
             android:layout_height="wrap_content"
             android:text="My Dashboard"
             android:backgroundTint="@color/af_purple"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnWorkvivo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Workvivo"
+            android:backgroundTint="@color/af_purple"
             android:layout_marginBottom="24dp" />
 
     </LinearLayout>
