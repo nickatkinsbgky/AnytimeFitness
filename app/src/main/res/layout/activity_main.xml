@@ -80,7 +80,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Refresh"
+            android:text="Open in Club OS"
             android:strokeColor="@color/af_purple"
             android:textColor="@color/af_purple"
             android:layout_marginBottom="12dp" />
@@ -89,7 +89,7 @@
             android:id="@+id/whosInStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tap Refresh to load who's currently in the club"
+            android:text="Tap the button to open Club OS and see who's currently in the club"
             android:textSize="14sp"
             android:gravity="center"
             android:layout_marginBottom="12dp"
