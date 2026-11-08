@@ -1,6 +1,7 @@
 package com.nickatkins.anytimefitness
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -28,6 +29,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btnMyDashboard).setOnClickListener {
             openUrl("https://resourcecenter.sebrands.com/af/newsfeed-19023985.html")
         }
+
+        findViewById<MaterialButton>(R.id.btnWorkvivo).setOnClickListener {
+            openWorkvivo()
+        }
     }
 
     private fun openUrl(url: String) {
@@ -35,6 +40,20 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         } catch (e: Exception) {
             Toast.makeText(this, "Unable to open link", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openWorkvivo() {
+        val packageName = "com.workvivo.android"
+        val intent = packageManager.getLaunchIntentForPackage(packageName)
+        if (intent != null) {
+            try {
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Unable to open Workvivo", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "Workvivo app is not installed", Toast.LENGTH_LONG).show()
         }
     }
 }
